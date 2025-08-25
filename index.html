@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VCE Chem Assistant</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #111;
+      font-family: 'Inter', Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 24px 10px 36px 10px;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 30px 0 25px 0;
+      letter-spacing: 0.03em;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1.5px solid #000;
+      margin-bottom: 26px;
+    }
+    .tab {
+      flex: 1;
+      padding: 12px 0;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #333;
+      font-size: 1rem;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .tab.active {
+      border-bottom: 2.5px solid #000;
+      font-weight: 600;
+      color: #000;
+      background: #fafafa;
+    }
+    .tab-content {
+      padding: 20px 0 0 0;
+      min-height: 200px;
+    }
+    input, select, button, textarea {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border: 1px solid #000;
+      border-radius: 3px;
+      background: #fff;
+      color: #000;
+      outline: none;
+      transition: border 0.12s;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 500;
+      border-radius: 3px;
+      margin-right: 10px;
+      background: #fff;
+      border: 1.5px solid #000;
+      color: #000;
+      transition: background 0.13s;
+    }
+    button:hover {
+      background: #000;
+      color: #fff;
+    }
+    .error {
+      background: #f5f5f5;
+      color: #b00020;
+      padding: 10px;
+      border: 1px solid #b00020;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 0.98rem;
+    }
+    .result, .tablebox {
+      background: #fafafa;
+      border: 1px solid #000;
+      border-radius: 4px;
+      padding: 14px 14px 12px 14px;
+      margin-bottom: 12px;
+    }
+    .breakdown-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 5px;
+    }
+    .breakdown-table th, .breakdown-table td {
+      border: 1px solid #aaa;
+      padding: 5px 7px;
+      text-align: center;
+      font-size: 0.98em;
+    }
+    .periodic-table {
+      overflow-x: auto;
+      font-size: 0.98em;
+      margin-top: 8px;
+    }
+    .periodic-table table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 700px;
+      background: #fff;
+    }
+    .periodic-table td, .periodic-table th {
+      border: 1px solid #000;
+      width: 36px;
+      text-align: center;
+      height: 36px;
+      color: #222;
+      font-weight: 500;
+      vertical-align: top;
+      background: #fff;
+      position: relative;
+      cursor: pointer;
+    }
+    .periodic-table .el {
+      font-weight: bold;
+      font-size: 1.03em;
+      display: block;
+    }
+    .periodic-table .mass {
+      font-size: 0.86em;
+      color: #555;
+      display: block;
+    }
+    .periodic-table .tooltip {
+      display: none;
+      position: absolute;
+      z-index: 99;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 38px;
+      background: #fff;
+      border: 1px solid #000;
+      border-radius: 4px;
+      font-size: 0.93em;
+      color: #111;
+      padding: 7px 10px;
+      box-shadow: 0 2px 6px #0001;
+      min-width: 150px;
+      max-width: 250px;
+      text-align: left;
+    }
+    .periodic-table td:hover .tooltip {
+      display: block;
+    }
+    .canvasbox {
+      margin: 12px 0 0 0;
+      padding: 8px;
+      background: #fafafa;
+      border: 1px solid #000;
+      border-radius: 4px;
+    }
+    canvas {
+      border: 1.5px solid #000;
+      background: #fff;
+      display: block;
+      margin-bottom: 7px;
+      cursor: crosshair;
+    }
+    .small {
+      font-size: 0.93em;
+      color: #666;
+      margin: 2px 0 3px 0;
+    }
+    .resources {
+      border-radius: 4px;
+      background: #fafafa;
+      border: 1px solid #000;
+      padding: 15px 18px 13px 18px;
+      margin-bottom: 15px;
+      font-size: 1em;
+    }
+    .resources a { color: #111; text-decoration: underline;}
+    .resources a:hover { color: #b00020;}
+    .example {
+      font-size: 0.95em;
+      color: #666;
+      margin-bottom: 6px;
+      margin-top: -8px;
+    }
+    .fact {
+      margin: 10px 0 0 0;
+      padding: 8px 12px;
+      background: #f5f5f5;
+      border-left: 4px solid #333;
+      font-size: 0.97em;
+      color: #333;
+      border-radius: 3px;
+    }
+    @media (max-width: 720px) {
+      .container { padding: 6px; }
+      .periodic-table table { font-size: 0.92em; min-width: 460px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VCE Chem Assistant</h1>
+    <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-bottom:10px;">
+      <label for="decimalSel" style="font-size:0.98em;">Decimal places:</label>
+      <select id="decimalSel">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+      </select>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="molar">Molar Mass</button>
+      <button class="tab" data-tab="balance">Balancer</button>
+      <button class="tab" data-tab="ions">Ions</button>
+      <button class="tab" data-tab="organic">Naming</button>
+      <button class="tab" data-tab="periodic">Elements</button>
+      <button class="tab" data-tab="resources">Resources</button>
+    </div>
+
+    <!-- Molar Mass Tab -->
+    <div class="tab-content" id="tab-molar">
+      <div class="example">e.g. <b>H2SO4</b>, <b>CaCl2</b>, <b>C6H12O6</b> (type and hit Enter or click Calculate)</div>
+      <input id="formulaInput" placeholder="Enter chemical formula" style="width:76%;" autocomplete="off" />
+      <button onclick="calcMolar()">Calculate</button>
+      <button onclick="resetMolar()">Clear</button>
+      <div id="molarError" class="error" style="display:none;"></div>
+      <div id="molarResult"></div>
+      <div class="fact"><b>Tip:</b> Molar mass is the mass of one mole of a substance, in grams per mole (g/mol).</div>
+    </div>
+
+    <!-- Balancer Tab -->
+    <div class="tab-content" id="tab-balance" style="display:none">
+      <div class="example">e.g. <b>Fe + O2 → Fe2O3</b> (type and hit Enter or click Balance)</div>
+      <input id="eqInput" placeholder="Unbalanced equation" style="width:76%;" autocomplete="off" />
+      <button onclick="balanceEq()">Balance</button>
+      <div id="balancerError" class="error" style="display:none;"></div>
+      <div id="balancerResult" style="margin-top:8px;"></div>
+      <div class="fact"><b>Tip:</b> Balance atoms on both sides. For redox, use half-equation method. See VCAA Data Book for conventions.</div>
+    </div>
+
+    <!-- Ions Tab -->
+    <div class="tab-content" id="tab-ions" style="display:none">
+      <div class="example">e.g. <b>Fe</b>, <b>Cl</b>, <b>Na</b></div>
+      <input id="ionInput" placeholder="Element symbol" style="width:76%;" autocomplete="off" />
+      <button onclick="findIons()">Find Ions</button>
+      <div id="ionError" class="error" style="display:none;"></div>
+      <div id="ionResult"></div>
+      <div class="fact"><b>Tip:</b> Ions are atoms or molecules with a net charge, due to electron gain/loss.</div>
+    </div>
+
+    <!-- Organic Naming Tab -->
+    <div class="tab-content" id="tab-organic" style="display:none">
+      <div class="example">e.g. <b>C3H8</b>, <b>C2H5OH</b>, <b>CH3COOH</b> (type and hit Enter or click Name)</div>
+      <input id="orgInput" placeholder="Formula" style="width:76%;" autocomplete="off" />
+      <button onclick="nameOrganic()">Name</button>
+      <div id="orgError" class="error" style="display:none;"></div>
+      <div id="orgName" class="result"></div>
+      <div class="canvasbox">
+        <span class="small">Draw a carbon chain (double-click to clear):</span>
+        <canvas id="orgCanvas" width="230" height="60"></canvas>
+        <button onclick="analyzeDrawing()">Guess chain</button>
+        <span id="drawResult" class="small"></span>
+      </div>
+      <div class="fact"><b>Tip:</b> Organic names relate to the number of carbons and functional groups (e.g. alcohol, alkene).</div>
+    </div>
+
+    <!-- Periodic Table Tab -->
+    <div class="tab-content" id="tab-periodic" style="display:none">
+      <div style="font-weight:600;font-size:1.08em;margin-bottom:7px;">VCE Periodic Table - Hover for details</div>
+      <div class="periodic-table" id="ptable"></div>
+      <div class="small" style="margin-top:8px;">
+        Data: IUPAC 2023, VCE main block. For advanced search &amp; interactive: <a href="https://www.rsc.org/periodic-table" target="_blank">RSC Periodic Table</a>
+      </div>
+    </div>
+
+    <!-- Resources Tab -->
+    <div class="tab-content" id="tab-resources" style="display:none">
+      <div class="resources">
+        <b>VCE Chemistry Study Resources</b><br><br>
+        <ul>
+          <li><a href="https://www.vcaa.vic.edu.au/curriculum/vce/vce-study-designs/chemistry/Pages/index.aspx" target="_blank">VCAA Chemistry Study Design</a></li>
+          <li><a href="https://www.rsc.org/periodic-table" target="_blank">Royal Society of Chemistry Interactive Periodic Table</a></li>
+          <li><a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank">PubChem Compound Database</a></li>
+          <li><a href="https://chemspider.com/" target="_blank">ChemSpider Compound Search</a></li>
+          <li><a href="https://www.ausetute.com.au/" target="_blank">AUS-e-TUTE Chemistry Revision</a></li>
+          <li><a href="https://www.khanacademy.org/science/chemistry" target="_blank">Khan Academy Chemistry</a></li>
+        </ul>
+        <b>Tips:</b> Use these for more info, practice problems, and interactive tools!
+      </div>
+    </div>
+  </div>
+  <script>
+    // --- Tab logic
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).style.display = '';
+        // Show decimal selector only in molar mass tab:
+        document.getElementById('decimalSel').parentElement.style.display =
+          tab.dataset.tab === "molar" ? "" : "none";
+      };
+    });
+
+    // Only show decimal selector in molar mass tab
+    document.getElementById('decimalSel').parentElement.style.display = "";
+
+    // --- Decimal places
+    function getDP() {
+      return parseInt(document.getElementById("decimalSel").value) || 3;
+    }
+
+    // --- Data
+    // Full IUPAC periodic table (all 118 elements, positions, atomic mass, symbol, name, group, period)
+    // Data source: IUPAC, Wikipedia, RSC
+    const periodicData = [
+      // period, group, symbol, name, mass, number, block, state, common ions
+      [1,1,'H','Hydrogen',1.008,1,'s','gas','H⁺'],
+      [1,18,'He','Helium',4.0026,2,'s','gas',''],
+      [2,1,'Li','Lithium',6.94,3,'s','solid','Li⁺'],
+      [2,2,'Be','Beryllium',9.0122,4,'s','solid','Be²⁺'],
+      [2,13,'B','Boron',10.81,5,'p','solid',''],
+      [2,14,'C','Carbon',12.011,6,'p','solid',''],
+      [2,15,'N','Nitrogen',14.007,7,'p','gas',''],
+      [2,16,'O','Oxygen',15.999,8,'p','gas','O²⁻'],
+      [2,17,'F','Fluorine',18.998,9,'p','gas','F⁻'],
+      [2,18,'Ne','Neon',20.180,10,'p','gas',''],
+      [3,1,'Na','Sodium',22.990,11,'s','solid','Na⁺'],
+      [3,2,'Mg','Magnesium',24.305,12,'s','solid','Mg²⁺'],
+      [3,13,'Al','Aluminium',26.982,13,'p','solid','Al³⁺'],
+      [3,14,'Si','Silicon',28.085,14,'p','solid',''],
+      [3,15,'P','Phosphorus',30.974,15,'p','solid',''],
+      [3,16,'S','Sulfur',32.06,16,'p','solid','S²⁻'],
+      [3,17,'Cl','Chlorine',35.45,17,'p','gas','Cl⁻'],
+      [3,18,'Ar','Argon',39.948,18,'p','gas',''],
+      [4,1,'K','Potassium',39.098,19,'s','solid','K⁺'],
+      [4,2,'Ca','Calcium',40.078,20,'s','solid','Ca²⁺'],
+      [4,3,'Sc','Scandium',44.956,21,'d','solid','Sc³⁺'],
+      [4,4,'Ti','Titanium',47.867,22,'d','solid','Ti⁴⁺'],
+      [4,5,'V','Vanadium',50.942,23,'d','solid','V⁵⁺'],
+      [4,6,'Cr','Chromium',51.996,24,'d','solid','Cr³⁺'],
+      [4,7,'Mn','Manganese',54.938,25,'d','solid','Mn²⁺'],
+      [4,8,'Fe','Iron',55.845,26,'d','solid','Fe²⁺, Fe³⁺'],
+      [4,9,'Co','Cobalt',58.933,27,'d','solid','Co²⁺'],
+      [4,10,'Ni','Nickel',58.693,28,'d','solid','Ni²⁺'],
+      [4,11,'Cu','Copper',63.546,29,'d','solid','Cu⁺, Cu²⁺'],
+      [4,12,'Zn','Zinc',65.38,30,'d','solid','Zn²⁺'],
+      [4,13,'Ga','Gallium',69.723,31,'p','solid','Ga³⁺'],
+      [4,14,'Ge','Germanium',72.630,32,'p','solid',''],
+      [4,15,'As','Arsenic',74.922,33,'p','solid',''],
+      [4,16,'Se','Selenium',78.971,34,'p','solid','Se²⁻'],
+      [4,17,'Br','Bromine',79.904,35,'p','liquid','Br⁻'],
+      [4,18,'Kr','Krypton',83.798,36,'p','gas',''],
+      [5,1,'Rb','Rubidium',85.468,37,'s','solid','Rb⁺'],
+      [5,2,'Sr','Strontium',87.62,38,'s','solid','Sr²⁺'],
+      [5,3,'Y','Yttrium',88.906,39,'d','solid','Y³⁺'],
+      [5,4,'Zr','Zirconium',91.224,40,'d','solid','Zr⁴⁺'],
+      [5,5,'Nb','Niobium',92.906,41,'d','solid','Nb⁵⁺'],
+      [5,6,'Mo','Molybdenum',95.95,42,'d','solid','Mo⁶⁺'],
+      [5,7,'Tc','Technetium',98,43,'d','solid',''],
+      [5,8,'Ru','Ruthenium',101.07,44,'d','solid','Ru³⁺'],
+      [5,9,'Rh','Rhodium',102.91,45,'d','solid','Rh³⁺'],
+      [5,10,'Pd','Palladium',106.42,46,'d','solid','Pd²⁺'],
+      [5,11,'Ag','Silver',107.87,47,'d','solid','Ag⁺'],
+      [5,12,'Cd','Cadmium',112.41,48,'d','solid','Cd²⁺'],
+      [5,13,'In','Indium',114.82,49,'p','solid','In³⁺'],
+      [5,14,'Sn','Tin',118.71,50,'p','solid','Sn²⁺, Sn⁴⁺'],
+      [5,15,'Sb','Antimony',121.76,51,'p','solid','Sb³⁺'],
+      [5,16,'Te','Tellurium',127.60,52,'p','solid','Te²⁻'],
+      [5,17,'I','Iodine',126.90,53,'p','solid','I⁻'],
+      [5,18,'Xe','Xenon',131.29,54,'p','gas',''],
+      [6,1,'Cs','Caesium',132.91,55,'s','solid','Cs⁺'],
+      [6,2,'Ba','Barium',137.33,56,'s','solid','Ba²⁺'],
+      // Lanthanides
+      [8,4,'La','Lanthanum',138.91,57,'f','solid','La³⁺'],
+      [8,5,'Ce','Cerium',140.12,58,'f','solid','Ce³⁺'],
+      [8,6,'Pr','Praseodymium',140.91,59,'f','solid','Pr³⁺'],
+      [8,7,'Nd','Neodymium',144.24,60,'f','solid','Nd³⁺'],
+      [8,8,'Pm','Promethium',145,61,'f','solid',''],
+      [8,9,'Sm','Samarium',150.36,62,'f','solid','Sm³⁺'],
+      [8,10,'Eu','Europium',151.96,63,'f','solid','Eu²⁺'],
+      [8,11,'Gd','Gadolinium',157.25,64,'f','solid','Gd³⁺'],
+      [8,12,'Tb','Terbium',158.93,65,'f','solid','Tb³⁺'],
+      [8,13,'Dy','Dysprosium',162.50,66,'f','solid','Dy³⁺'],
+      [8,14,'Ho','Holmium',164.93,67,'f','solid','Ho³⁺'],
+      [8,15,'Er','Erbium',167.26,68,'f','solid','Er³⁺'],
+      [8,16,'Tm','Thulium',168.93,69,'f','solid','Tm³⁺'],
+      [8,17,'Yb','Ytterbium',173.05,70,'f','solid','Yb²⁺'],
+      [8,18,'Lu','Lutetium',174.97,71,'f','solid','Lu³⁺'],
+      // Period 6
+      [6,3,'Hf','Hafnium',178.49,72,'d','solid','Hf⁴⁺'],
+      [6,4,'Ta','Tantalum',180.95,73,'d','solid','Ta⁵⁺'],
+      [6,5,'W','Tungsten',183.84,74,'d','solid','W⁶⁺'],
+      [6,6,'Re','Rhenium',186.21,75,'d','solid','Re⁷⁺'],
+      [6,7,'Os','Osmium',190.23,76,'d','solid','Os⁴⁺'],
+      [6,8,'Ir','Iridium',192.22,77,'d','solid','Ir³⁺'],
+      [6,9,'Pt','Platinum',195.08,78,'d','solid','Pt²⁺'],
+      [6,10,'Au','Gold',196.97,79,'d','solid','Au⁺, Au³⁺'],
+      [6,11,'Hg','Mercury',200.59,80,'d','liquid','Hg²⁺'],
+      [6,12,'Tl','Thallium',204.38,81,'p','solid','Tl⁺'],
+      [6,13,'Pb','Lead',207.2,82,'p','solid','Pb²⁺'],
+      [6,14,'Bi','Bismuth',208.98,83,'p','solid','Bi³⁺'],
+      [6,15,'Po','Polonium',209,84,'p','solid',''],
+      [6,16,'At','Astatine',210,85,'p','solid',''],
+      [6,17,'Rn','Radon',222,86,'p','gas',''],
+      [7,1,'Fr','Francium',223,87,'s','solid','Fr⁺'],
+      [7,2,'Ra','Radium',226,88,'s','solid','Ra²⁺'],
+      // Actinides
+      [9,4,'Ac','Actinium',227,89,'f','solid','Ac³⁺'],
+      [9,5,'Th','Thorium',232.04,90,'f','solid','Th⁴⁺'],
+      [9,6,'Pa','Protactinium',231.04,91,'f','solid','Pa⁵⁺'],
+      [9,7,'U','Uranium',238.03,92,'f','solid','U⁶⁺'],
+      [9,8,'Np','Neptunium',237,93,'f','solid','Np⁵⁺'],
+      [9,9,'Pu','Plutonium',244,94,'f','solid','Pu⁴⁺'],
+      [9,10,'Am','Americium',243,95,'f','solid','Am³⁺'],
+      [9,11,'Cm','Curium',247,96,'f','solid','Cm³⁺'],
+      [9,12,'Bk','Berkelium',247,97,'f','solid','Bk³⁺'],
+      [9,13,'Cf','Californium',251,98,'f','solid','Cf³⁺'],
+      [9,14,'Es','Einsteinium',252,99,'f','solid','Es³⁺'],
+      [9,15,'Fm','Fermium',257,100,'f','solid','Fm³⁺'],
+      [9,16,'Md','Mendelevium',258,101,'f','solid','Md³⁺'],
+      [9,17,'No','Nobelium',259,102,'f','solid','No²⁺'],
+      [9,18,'Lr','Lawrencium',266,103,'f','solid','Lr³⁺'],
+      // Period 7
+      [7,3,'Rf','Rutherfordium',267,104,'d','solid',''],
+      [7,4,'Db','Dubnium',270,105,'d','solid',''],
+      [7,5,'Sg','Seaborgium',271,106,'d','solid',''],
+      [7,6,'Bh','Bohrium',270,107,'d','solid',''],
+      [7,7,'Hs','Hassium',277,108,'d','solid',''],
+      [7,8,'Mt','Meitnerium',278,109,'d','solid',''],
+      [7,9,'Ds','Darmstadtium',281,110,'d','solid',''],
+      [7,10,'Rg','Roentgenium',282,111,'d','solid',''],
+      [7,11,'Cn','Copernicium',285,112,'d','solid',''],
+      [7,12,'Fl','Flerovium',289,114,'p','solid',''],
+      [7,13,'Mc','Moscovium',290,115,'p','solid',''],
+      [7,14,'Lv','Livermorium',293,116,'p','solid',''],
+      [7,15,'Ts','Tennessine',294,117,'p','solid',''],
+      [7,16,'Og','Oganesson',294,118,'p','gas',''],
+      [7,17,null,null,null,null,null,null,null,null]
+    ];
+
+    // Atomic masses for calculations
+    const atomicMasses = {};
+    periodicData.forEach(d => { if(d[2]) atomicMasses[d[2]] = d[4]; });
+
+    // Common ions for lookup
+    const commonIons = {
+      H: ['H⁺'], Li: ['Li⁺'], Na: ['Na⁺'], K: ['K⁺'], Rb: ['Rb⁺'], Cs: ['Cs⁺'],
+      Be: ['Be²⁺'], Mg: ['Mg²⁺'], Ca: ['Ca²⁺'], Sr: ['Sr²⁺'], Ba: ['Ba²⁺'],
+      Al: ['Al³⁺'], Zn: ['Zn²⁺'], Ag: ['Ag⁺'],
+      Fe: ['Fe²⁺', 'Fe³⁺'], Cu: ['Cu⁺', 'Cu²⁺'], Pb: ['Pb²⁺', 'Pb⁴⁺'],
+      Sn: ['Sn²⁺', 'Sn⁴⁺'], Cr: ['Cr³⁺', 'Cr⁶⁺'], Mn: ['Mn²⁺', 'Mn⁴⁺', 'Mn⁷⁺'],
+      F: ['F⁻'], Cl: ['Cl⁻'], Br: ['Br⁻'], I: ['I⁻'],
+      O: ['O²⁻'], S: ['S²⁻'], N: ['N³⁻'], P: ['P³⁻']
+    };
+    const ionNotes = {
+      'Fe²⁺': 'ferrous', 'Fe³⁺': 'ferric', 'Cu⁺': 'cuprous', 'Cu²⁺': 'cupric',
+      'Pb²⁺': 'lead(II)', 'Pb⁴⁺': 'lead(IV)', 'Sn²⁺': 'stannous', 'Sn⁴⁺': 'stannic'
+    };
+
+    // --- Molar Mass Calculator
+    function parseFormula(formula) {
+      const clean = formula.replace(/\s/g, '');
+      const map = {};
+      const regex = /([A-Z][a-z]?)(\d*)/g;
+      let match;
+      while ((match = regex.exec(clean)) !== null) {
+        const el = match[1];
+        const n = match[2] ? parseInt(match[2]) : 1;
+        if (!atomicMasses[el]) throw new Error('Unknown element: ' + el);
+        map[el] = (map[el] || 0) + n;
+      }
+      return map;
+    }
+    function calcMolar() {
+      const f = document.getElementById('formulaInput').value.trim();
+      const dp = getDP();
+      document.getElementById('molarError').style.display = 'none';
+      document.getElementById('molarResult').innerHTML = '';
+      if (!f) { show('molarError', 'Enter a formula'); return; }
+      let comp;
+      try {
+        comp = parseFormula(f);
+      } catch (err) {
+        show('molarError', err.message); return;
+      }
+      let total = 0, breakdown = [];
+      for (const el in comp) {
+        let n = comp[el], mass = atomicMasses[el], subtotal = n * mass;
+        breakdown.push({el, n, mass, subtotal});
+        total += subtotal;
+      }
+      let html = `<div class="result"><b>${total.toFixed(dp)} g/mol</b></div>
+      <table class="breakdown-table"><tr><th>Element</th><th>Count</th><th>Atomic Mass</th><th>Contribution</th></tr>`;
+      breakdown.forEach(x => {
+        html += `<tr><td>${x.el}</td><td>${x.n}</td><td>${x.mass}</td><td>${(x.n*x.mass).toFixed(dp)}</td></tr>`;
+      });
+      html += "</table>";
+      document.getElementById('molarResult').innerHTML = html;
+    }
+    function resetMolar() {
+      document.getElementById('formulaInput').value = '';
+      document.getElementById('molarError').style.display = 'none';
+      document.getElementById('molarResult').innerHTML = '';
+    }
+    document.getElementById('formulaInput').addEventListener("keydown", e => {
+      if (e.key === "Enter") calcMolar();
+    });
+
+    // --- Equation Balancer (manual)
+    function balanceEq() {
+      const eq = document.getElementById('eqInput').value.trim();
+      document.getElementById('balancerError').style.display = 'none';
+      document.getElementById('balancerResult').innerHTML = '';
+      if (!eq) { show('balancerError', 'Enter an equation'); return; }
+      document.getElementById('balancerResult').innerHTML =
+        `<b>Unbalanced:</b> <span style="font-family:monospace">${eq}</span><br>
+        <span class="small">Balance using your knowledge or VCE Data Book.</span>`;
+    }
+    document.getElementById('eqInput').addEventListener("keydown", e => {
+      if (e.key === "Enter") balanceEq();
+    });
+
+    // --- Ions lookup
+    function findIons() {
+      const input = document.getElementById('ionInput').value.trim();
+      document.getElementById('ionError').style.display = 'none';
+      document.getElementById('ionResult').innerHTML = '';
+      if (!input) { show('ionError', 'Enter element symbol'); return; }
+      const sym = input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+      if (!atomicMasses[sym]) { show('ionError', 'Unknown element'); return; }
+      const ions = commonIons[sym] || [];
+      let html = '';
+      if (ions.length === 0) {
+        html = `<div class="result">${sym}: <span class="small">Neutral/rare ion</span></div>`;
+      } else {
+        html = ions.map(i =>
+          `<div class="result">${i} <span class="small">${ionNotes[i]||'common'}</span></div>`
+        ).join('');
+      }
+      document.getElementById('ionResult').innerHTML = html;
+    }
+    document.getElementById('ionInput').addEventListener("keydown", e => {
+      if (e.key === "Enter") findIons();
+    });
+
+    // --- Organic Naming
+    function nameOrganic() {
+      const f = document.getElementById('orgInput').value.trim().toUpperCase();
+      document.getElementById('orgError').style.display = 'none';
+      document.getElementById('orgName').innerHTML = '';
+      if (!f) { show('orgError', 'Enter formula'); return; }
+      let name = '';
+      if (f === 'CH4') name = 'methane';
+      else if (f === 'C2H6') name = 'ethane';
+      else if (f === 'C3H8') name = 'propane';
+      else if (f === 'C4H10') name = 'butane';
+      else if (f === 'C5H12') name = 'pentane';
+      else if (f === 'C6H14') name = 'hexane';
+      else if (f === 'C7H16') name = 'heptane';
+      else if (f === 'C8H18') name = 'octane';
+      else if (f === 'CH3OH' || f === 'CH4O') name = 'methanol';
+      else if (f === 'C2H5OH' || f === 'C2H6O') name = 'ethanol';
+      else if (f === 'C3H7OH' || f === 'C3H8O') name = 'propanol';
+      else if (f === 'CH3COOH' || f === 'C2H4O2') name = 'acetic acid';
+      else if (f === 'HCOOH' || f === 'CH2O2') name = 'formic acid';
+      else if (f === 'C2H4') name = 'ethene';
+      else if (f === 'C3H6') name = 'propene';
+      else if (f === 'C4H8') name = 'butene';
+      else name = 'Complex compound - manual naming required';
+      document.getElementById('orgName').innerHTML = name;
+    }
+    document.getElementById('orgInput').addEventListener("keydown", e => {
+      if (e.key === "Enter") nameOrganic();
+    });
+
+    // --- Minimal organic drawing 
+    const canvas = document.getElementById('orgCanvas');
+    let drawing = false, points = [];
+    canvas.addEventListener('mousedown', e => {
+      drawing = true;
+      points = [[e.offsetX, e.offsetY]];
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!drawing) return;
+      const ctx = canvas.getContext('2d');
+      const p = points;
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(p[p.length-1][0], p[p.length-1][1]);
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      points.push([e.offsetX, e.offsetY]);
+    });
+    canvas.addEventListener('mouseup', ()=>{ drawing = false; });
+    canvas.addEventListener('mouseleave', ()=>{ drawing = false; });
+    canvas.addEventListener('dblclick', () => {
+      points = [];
+      canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+      document.getElementById('drawResult').textContent = '';
+    });
+    function analyzeDrawing() {
+      if (points.length < 2) { document.getElementById('drawResult').textContent = 'Draw a chain.'; return; }
+      let segs = 0;
+      for (let i=1; i<points.length; ++i) {
+        let dx = points[i][0]-points[i-1][0], dy = points[i][1]-points[i-1][1];
+        if (Math.hypot(dx,dy) > 10) segs++;
+      }
+      const names = [,'methane','ethane','propane','butane','pentane','hexane','heptane','octane'];
+      document.getElementById('drawResult').textContent = segs < names.length ? names[segs] : `~${segs} carbons`;
+    }
+
+    // --- Periodic table
+    function renderPTable() {
+      // Main table: periods 1-7, groups 1-18
+      let grid = Array.from({length:9},()=>Array(18).fill(null));
+      periodicData.forEach(([per, group, sym, name, mass, number, block, state, ions]) => {
+        if (sym) grid[per-1][group-1] = {sym,name,mass,number,block,state,ions};
+      });
+      let html = '<table><tbody>';
+      for (let row = 0; row < 7; row++) {
+        html += '<tr>';
+        for (let col = 0; col < 18; col++) {
+          let cell = grid[row][col];
+          html += '<td>';
+          if (cell) {
+            html += `<span class="el">${cell.sym}</span><span class="mass">${cell.mass}</span>
+            <span class="tooltip">
+              <b>${cell.name}</b> (${cell.sym})<br>
+              Atomic number: ${cell.number}<br>
+              Period: ${row+1}, Group: ${col+1}<br>
+              Block: ${cell.block.toUpperCase()}, State: ${cell.state}<br>
+              ${cell.ions ? 'Common ions: ' + cell.ions : ''}
+            </span>`;
+          }
+          html += '</td>';
+        }
+        html += '</tr>';
+      }
+      // Lanthanides
+      html += `<tr><td colspan="18" style="padding:0;height:9px;background:#fff;border:none;"></td></tr>`;
+      html += `<tr><td colspan="2"></td>`;
+      for (let col = 0; col < 15; col++) {
+        let cell = grid[7][col+3];
+        html += '<td>';
+        if (cell) {
+          html += `<span class="el">${cell.sym}</span><span class="mass">${cell.mass}</span>
+          <span class="tooltip">
+            <b>${cell.name}</b> (${cell.sym})<br>
+            Atomic number: ${cell.number}<br>
+            Lanthanide series<br>
+            Block: F, State: ${cell.state}<br>
+            ${cell.ions ? 'Common ions: ' + cell.ions : ''}
+          </span>`;
+        }
+        html += '</td>';
+      }
+      html += '<td colspan="1"></td></tr>';
+      // Actinides
+      html += `<tr><td colspan="2"></td>`;
+      for (let col = 0; col < 15; col++) {
+        let cell = grid[8][col+3];
+        html += '<td>';
+        if (cell) {
+          html += `<span class="el">${cell.sym}</span><span class="mass">${cell.mass}</span>
+          <span class="tooltip">
+            <b>${cell.name}</b> (${cell.sym})<br>
+            Atomic number: ${cell.number}<br>
+            Actinide series<br>
+            Block: F, State: ${cell.state}<br>
+            ${cell.ions ? 'Common ions: ' + cell.ions : ''}
+          </span>`;
+        }
+        html += '</td>';
+      }
+      html += '<td colspan="1"></td></tr>';
+      html += '</tbody></table>';
+      document.getElementById('ptable').innerHTML = html;
+    }
+    renderPTable();
+
+    // --- Show error
+    function show(id, txt) {
+      const el = document.getElementById(id);
+      el.style.display = '';
+      el.textContent = txt;
+    }
+  </script>
+</body>
+</html>
